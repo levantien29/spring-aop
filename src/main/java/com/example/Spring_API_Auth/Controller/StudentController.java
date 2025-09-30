@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.Spring_API_Auth.Dto.ApiResponse;
 import com.example.Spring_API_Auth.Dto.StudentRequest;
+import com.example.Spring_API_Auth.Dto.StudentResponse;
 import com.example.Spring_API_Auth.Dto.StudentSearchRequest;
 import com.example.Spring_API_Auth.Presenter.StudentPresenter;
 
@@ -77,20 +79,31 @@ public class StudentController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
-    public Object create(@Valid @RequestBody StudentRequest request) {
-        return presenter.presentCreate(request);
+    public ResponseEntity<ApiResponse<StudentResponse>> create(@Valid @RequestBody StudentRequest request) {
+        var response = presenter.presentCreate(request);
+        var result = response.getBody();
+        return ResponseEntity.ok(
+            new ApiResponse<>(true, "Thêm sinh viên thành công", result)
+        );
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public Object update(@Valid @RequestBody StudentRequest request, @PathVariable Long id) {
-        return presenter.presentUpdate(request, id);
+    public ResponseEntity<ApiResponse<StudentResponse>> update(@Valid @RequestBody StudentRequest request, @PathVariable Long id) {
+        var response = presenter.presentUpdate(request, id);
+        var result = response.getBody();
+        return ResponseEntity.ok(
+            new ApiResponse<>(true, "Cập nhật sinh viên thành công", result)
+        );
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public Object delete(@PathVariable Long id) {
-        return presenter.presentDelete(id);
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        presenter.presentDelete(id); // thường delete không trả body
+        return ResponseEntity.ok(
+            new ApiResponse<>(true, "Xóa sinh viên thành công", null)
+        );
     }
 
     @PostMapping("/search")

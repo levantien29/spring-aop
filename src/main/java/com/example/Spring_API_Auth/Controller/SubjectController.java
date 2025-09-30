@@ -1,22 +1,15 @@
 package com.example.Spring_API_Auth.Controller;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.example.Spring_API_Auth.Dto.ApiResponse;
 import com.example.Spring_API_Auth.Presenter.SubjectPresenter;
 import com.example.Spring_API_Auth.Subject_Dto.SubjectRequest;
 import com.example.Spring_API_Auth.Subject_Dto.SubjectSearchRequest;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/subject")
@@ -39,20 +32,26 @@ public class SubjectController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public Object create(@Valid @RequestBody SubjectRequest request) {
-        return presenter.presentCreate(request);
+    public ResponseEntity<ApiResponse<?>> create(@Valid @RequestBody SubjectRequest request) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Thêm môn học thành công", presenter.presentCreate(request))
+        );
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public Object update(@Valid @RequestBody SubjectRequest request, @PathVariable Long id) {
-        return presenter.presentUpdate(request, id);
+    public ResponseEntity<ApiResponse<?>> update(@Valid @RequestBody SubjectRequest request, @PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Cập nhật môn học thành công", presenter.presentUpdate(request, id))
+        );
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Object delete(@PathVariable Long id) {
-        return presenter.presentDelete(id);
+    public ResponseEntity<ApiResponse<?>> delete(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Xóa môn học thành công", presenter.presentDelete(id))
+        );
     }
 
     @PostMapping("/search")

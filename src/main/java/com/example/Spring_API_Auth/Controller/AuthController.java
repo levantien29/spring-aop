@@ -1,5 +1,6 @@
 package com.example.Spring_API_Auth.Controller;
 
+import com.example.Spring_API_Auth.Dto.ApiResponse;
 import com.example.Spring_API_Auth.Service.UserService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -23,69 +24,81 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/register/user")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<?>> register(@RequestBody RegisterRequest request) {
         try {
             userService.registerUser(request.getEmail(), request.getPassword());
-            return ResponseEntity.ok(Map.of("message", "Đăng ký user " + request.getEmail() + "thành công"));
+            return ResponseEntity.ok(
+                new ApiResponse<>(true, "Đăng ký user " + request.getEmail() + " thành công", null)
+            );
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>(false, e.getMessage(), null)
+            );
         }
     }
 
-    // dắng kí teacher
     @PostMapping("/register/teacher")
-    public ResponseEntity<?> registerTeacher(@RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<?>> registerTeacher(@RequestBody RegisterRequest request) {
         try {
             userService.registerTeacher(request.getEmail(), request.getPassword());
-            return ResponseEntity
-                    .ok(Map.of("message", "Đăng ký giáo viên với email : " + request.getEmail() + " thành công"));
+            return ResponseEntity.ok(
+                new ApiResponse<>(true, "Đăng ký giáo viên với email " + request.getEmail() + " thành công", null)
+            );
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(
+                new ApiResponse<>(false, e.getMessage(), null)
+            );
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody LoginRequest request) {
         try {
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // Lấy danh sách role
             var roles = auth.getAuthorities().stream()
                     .map(r -> r.getAuthority())
                     .toList();
 
-            // Map role sang quyền API
             Map<String, Boolean> permissions = Map.of(
-                    "GET",
-                    roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER") || roles.contains("ROLE_TEACHER"),
-                    "SEARCH",
-                    roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER") || roles.contains("ROLE_TEACHER"),
+                    "GET", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER") || roles.contains("ROLE_TEACHER"),
+                    "SEARCH", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER") || roles.contains("ROLE_TEACHER"),
                     "POST", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_TEACHER"),
                     "PUT", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_TEACHER"),
-                    "DELETE", roles.contains("ROLE_ADMIN"));
+                    "DELETE", roles.contains("ROLE_ADMIN")
+            );
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "Login thành công",
+            Map<String, Object> data = Map.of(
                     "username", request.getEmail(),
                     "roles", roles,
-                    "permissions", permissions));
+                    "permissions", permissions
+            );
+
+            return ResponseEntity.ok(
+                new ApiResponse<>(true, "Login thành công", data)
+            );
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Email hoặc mật khẩu sai"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new ApiResponse<>(false, "Email hoặc mật khẩu sai", null)
+            );
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
-        // Xóa SecurityContext (dù Basic Auth stateless)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> logout() {
         SecurityContextHolder.clearContext();
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Logout successful",
-                "timestamp", LocalDateTime.now()));
+        Map<String, Object> data = Map.of(
+                "timestamp", LocalDateTime.now()
+        );
+
+        return ResponseEntity.ok(
+            new ApiResponse<>(true, "Logout thành công", data)
+        );
     }
 }
 
