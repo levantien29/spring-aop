@@ -7,7 +7,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.Spring_API_Auth.Dto.StudentRequest;
-import com.example.Spring_API_Auth.Dto.StudentResponse;
 import com.example.Spring_API_Auth.Dto.StudentSearchRequest;
 import com.example.Spring_API_Auth.Presenter.StudentPresenter;
 
@@ -65,37 +64,37 @@ public class StudentController {
     private final StudentPresenter presenter;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'TEACHER')")
     public Object getAll(Pageable pageable) {
         return presenter.presentAll(pageable);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'TEACHER')")
     public Object getById(@PathVariable Long id) {
         return presenter.presentById(id);
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
     public Object create(@Valid @RequestBody StudentRequest request) {
         return presenter.presentCreate(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public Object update(@Valid @RequestBody StudentRequest request, @PathVariable Long id) {
         return presenter.presentUpdate(request, id);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public Object delete(@PathVariable Long id) {
         return presenter.presentDelete(id);
     }
 
     @PostMapping("/search")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'TEACHER')")
     public Object searchStudent(@RequestBody StudentSearchRequest request, Pageable pageable) {
         return presenter.presentSearch(request, pageable);
     }

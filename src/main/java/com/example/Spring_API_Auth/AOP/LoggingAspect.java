@@ -158,24 +158,34 @@ public class LoggingAspect {
                 getCurrentUserEmail(), getCurrentUserRoles(), getCurrentUserPermissions(), result, LocalDateTime.now());
     }
 
-//         // ====== VALIDATION ERROR ======
-//     @AfterThrowing(
-//         pointcut = "execution(* com.example.Spring_API_Auth.Controller.StudentController.create(..))",
-//         throwing = "ex")
+        // ====== VALIDATION ERROR ======
+// @AfterThrowing(
+//     pointcut = "execution(* com.example.Spring_API_Auth.Controller.StudentController.create(..))",
+//     throwing = "ex")
 // public void logValidationError(Exception ex) {
 //     if (ex instanceof MethodArgumentNotValidException manvEx) {
-//         String errors = manvEx.getBindingResult().getFieldErrors().stream()
+//         // Gom danh sách lỗi field
+//         String errors = manvEx.getBindingResult()
+//                 .getFieldErrors()
+//                 .stream()
 //                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
 //                 .collect(Collectors.joining(", "));
 
-//         log.error("⚠️ [VALIDATION ERROR] User='{}' | Role={} | Endpoint=/api/student | Lỗi: {} | lúc: {}",
+//         // Lấy endpoint bị gọi
+//         String endpoint = "/api/student";
+
+//         log.error("⚠️ [VALIDATION ERROR] User='{}' | Role='{}' | Endpoint='{}' | Lỗi='{}' | Thời gian='{}'",
 //                 getCurrentUserEmail(),
 //                 getCurrentUserRoles(),
+//                 endpoint,
 //                 errors,
 //                 LocalDateTime.now()
 //         );
 //     }
 // }
+
+
+
     @AfterReturning(pointcut = "execution(* com.example.Spring_API_Auth.Controller.AuthController.logout(..))", returning = "result")
 public void logLogout(Object result) {
     log.info("🔓 [LOGOUT] User '{}' với Role '{}' đã đăng xuất thành công. Kết quả: {}, lúc: {}",

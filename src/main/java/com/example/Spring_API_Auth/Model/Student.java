@@ -1,9 +1,13 @@
 package com.example.Spring_API_Auth.Model;
 
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,4 +31,8 @@ public class Student {
     private int age;
     private String major;
     private double gpa;
+
+    // Quan hệ 1-n với Grade
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private List<Grade> grades;
 }

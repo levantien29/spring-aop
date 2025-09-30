@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management Dashboard</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2922/2922561.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 1rem;
+            height: calc(100vh - 2rem);
+            background: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar h5 {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #4b5563;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: #eff6ff;
+            color: #1d4ed8;
+            transform: translateX(5px);
+        }
+
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-add {
+            background-color: #16a34a;
+            color: #fff;
+        }
+
+        .btn-add:hover {
+            background-color: #15803d;
+        }
+
+        .btn-edit {
+            background-color: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-edit:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-delete {
+            background-color: #ef4444;
+            color: #fff;
+        }
+
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-clear {
+            background-color: #6b7280;
+            color: #fff;
+        }
+
+        .btn-clear:hover {
+            background-color: #4b5563;
+        }
+
+        .btn-save {
+            background-color: #16a34a;
+            color: #fff;
+        }
+
+        .btn-save:hover {
+            background-color: #15803d;
+        }
+
+        .btn-cancel {
+            background-color: #6b7280;
+            color: #fff;
+        }
+
+        .btn-cancel:hover {
+            background-color: #4b5563;
+        }
+
+        .search-bar {
+            position: relative;
+            max-width: 500px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid #e2e8f0;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+            outline: none;
+        }
+
+        .search-bar .icon {
+            position: absolute;
+            top: 50%;
+            left: 0.75rem;
+            transform: translateY(-50%);
+            color: #6b7280;
+        }
+
+        .table {
+            background: #ffffff;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .table thead {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: #ffffff;
+        }
+
+        .table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: #f1f5f9;
+        }
+
+        .table th, .table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .highlight {
+            background-color: #fef08a;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+        }
+
+        .pagination .page-link {
+            border-radius: 0.5rem;
+            color: #3b82f6;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        .pagination .disabled .page-link {
+            color: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .sidebar-toggle {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                width: 250px;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+
+            /* .sidebar.active {
+                left: 0;
+            } */
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                padding: 0 1rem;
+            }
+
+            .search-bar {
+                max-width: 100%;
+            }
+
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid px-4 py-2 flex justify-between items-center">
+            <div class="flex items-center">
+                <button class="sidebar-toggle text-white mr-4 focus:outline-none" onclick="toggleSidebar()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <a class="navbar-brand font-bold text-lg text-white" href="#">Student Manager</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-white font-medium">Xin chào, <b th:text="${username}">Admin</b></span>
+                <a class="btn bg-white text-blue-600 hover:bg-gray-100" href="/logout">Đăng xuất</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-6 px-4">
+        <div class="flex flex-col md:flex-row gap-4">
+            <!-- Sidebar -->
+            <div class="sidebar md:w-64" id="sidebar">
+                <h5 class="text-lg">Menu</h5>
+                <ul class="nav flex-column space-y-2">
+                    <li><a class="nav-link" href="#">📖 Quản lý giáo viên</a></li>
+                    <li><a class="nav-link active" href="#">📚 Quản lý sinh viên</a></li>
+                    <li><a class="nav-link" href="#">📖 Quản lý môn học</a></li>
+                    <li><a class="nav-link" href="#">🎓 Quản lý điểm</a></li>
+                    <li><a class="nav-link" href="#">⚙️ Cài đặt</a></li>
+                </ul>
+            </div>
+
+            <!-- Main content -->
+            <div class="main-content flex-1">
+                <div class="card mb-6 p-6">
+                    <h4 class="text-xl font-semibold">Bảng điều khiển</h4>
+                    <p class="text-gray-600">Quản lý toàn bộ hệ thống sinh viên từ một nơi duy nhất.</p>
+                </div>
+
+                <!-- Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="card bg-green-500 text-white p-6">
+                        <h5 class="font-semibold flex items-center gap-2">👨‍🎓 Sinh viên</h5>
+                        <p class="text-2xl font-bold" th:text="${page.totalElements}">0</p>
+                    </div>
+                    <div class="card bg-blue-500 text-white p-6">
+                        <h5 class="font-semibold flex items-center gap-2">📘 Môn học</h5>
+                        <p class="text-2xl font-bold">25</p>
+                    </div>
+                    <div class="card bg-yellow-500 text-white p-6">
+                        <h5 class="font-semibold flex items-center gap-2">📊 Điểm số</h5>
+                        <p class="text-2xl font-bold">Đang cập nhật</p>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h5 class="font-semibold text-lg">Danh sách sinh viên</h5>
+                        <button class="btn btn-add" onclick="openStudentForm()">➕ Thêm</button>
+                    </div>
+
+                    <div class="search-bar">
+                        <span class="icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Tìm kiếm theo bất kỳ thông tin sinh viên..." aria-label="Tìm kiếm sinh viên">
+                        <button class="btn btn-clear" onclick="clearSearch()"> Xóa</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table w-full" id="studentTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Mã SV</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Điện thoại</th>
+                                    <th>Giới tính</th>
+                                    <th>Tuổi</th>
+                                    <th>Ngành học</th>
+                                    <th>GPA</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <tr th:each="sv : ${students}">
+                                    <td th:text="${sv.id}"></td>
+                                    <td th:text="${sv.code}"></td>
+                                    <td th:text="${sv.name}"></td>
+                                    <td th:text="${sv.email}"></td>
+                                    <td th:text="${sv.phone}"></td>
+                                    <td th:text="${sv.gender}"></td>
+                                    <td th:text="${sv.age}"></td>
+                                    <td th:text="${sv.major}"></td>
+                                    <td th:text="${sv.gpa}"></td>
+                                    <td class="student-actions" th:data-id="${sv.id}" th:data-code="${sv.code}" th:data-name="${sv.name}" th:data-email="${sv.email}" th:data-phone="${sv.phone}" th:data-gender="${sv.gender}" th:data-age="${sv.age}" th:data-major="${sv.major}" th:data-gpa="${sv.gpa}">
+                                        <button class="btn btn-edit" onclick="editStudent(this)">✏️ Sửa</button>
+                                        <button class="btn btn-delete" onclick="deleteStudent(this)">🗑️ Xóa</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav class="mt-4">
+                        <ul class="pagination flex justify-center space-x-2">
+                            <li class="page-item" th:classappend="${page.hasPrevious()} ? '' : 'disabled'">
+                                <a class="page-link px-4 py-2" th:href="@{/dashboard(page=${page.number - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link px-4 py-2" th:text="'Trang ' + ${page.number + 1} + '/' + ${page.totalPages}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${page.hasNext()} ? '' : 'disabled'">
+                                <a class="page-link px-4 py-2" th:href="@{/dashboard(page=${page.number + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div id="studentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 m-4">
+            <h3 id="studentFormTitle" class="text-xl font-bold mb-4">Thêm sinh viên</h3>
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-1 font-medium">Mã SV</label>
+                        <input type="text" id="studentCode" class="w-full border border-gray-300 rounded px-2 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Họ tên</label>
+                        <input type="text" id="studentName" class="w-full border border-gray-300 rounded px-2 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Email</label>
+                        <input type="email" id="studentEmail" class="w-full border border-gray-300 rounded px-2 py-2" required>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Điện thoại</label>
+                        <input type="text" id="studentPhone" class="w-full border border-gray-300 rounded px-2 py-2">
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Giới tính</label>
+                        <select id="studentGender" class="w-full border border-gray-300 rounded px-2 py-2">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Tuổi</label>
+                        <input type="number" id="studentAge" class="w-full border border-gray-300 rounded px-2 py-2" min="16" max="100">
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Ngành học</label>
+                        <input type="text" id="studentMajor" class="w-full border border-gray-300 rounded px-2 py-2">
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">GPA</label>
+                        <input type="number" step="0.1" id="studentGpa" class="w-full border border-gray-300 rounded px-2 py-2" min="0" max="4" value="0">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" class="btn btn-cancel" onclick="closeStudentForm()">Hủy</button>
+                    <button type="submit" class="btn btn-save" id="saveBtn">Lưu <span class="loading hidden" id="loadingSpinner"></span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // API base URL - Khớp với backend StudentController
+    const API_BASE = '/api/student';
+
+    // Open form for adding or editing
+    function openStudentForm() {
+        const formTitle = document.getElementById("studentFormTitle");
+        const form = document.getElementById("studentForm");
+        form.reset();
+        document.getElementById("studentId").value = "";
+        formTitle.textContent = "Thêm sinh viên";
+        document.getElementById("studentModal").classList.remove("hidden");
+    }
+
+    // Edit student
+    function editStudent(button) {
+        const row = button.closest('tr');
+        const actionsCell = row.querySelector('.student-actions');
+        const student = {
+            id: parseInt(actionsCell.dataset.id),
+            code: actionsCell.dataset.code,
+            name: actionsCell.dataset.name,
+            email: actionsCell.dataset.email,
+            phone: actionsCell.dataset.phone,
+            gender: actionsCell.dataset.gender,
+            age: parseInt(actionsCell.dataset.age),
+            major: actionsCell.dataset.major,
+            gpa: parseFloat(actionsCell.dataset.gpa)
+        };
+
+        document.getElementById("studentId").value = student.id;
+        document.getElementById("studentCode").value = student.code;
+        document.getElementById("studentName").value = student.name;
+        document.getElementById("studentEmail").value = student.email;
+        document.getElementById("studentPhone").value = student.phone;
+        document.getElementById("studentGender").value = student.gender;
+        document.getElementById("studentAge").value = student.age;
+        document.getElementById("studentMajor").value = student.major;
+        document.getElementById("studentGpa").value = student.gpa;
+
+        document.getElementById("studentFormTitle").textContent = "Sửa sinh viên";
+        document.getElementById("studentModal").classList.remove("hidden");
+    }
+
+    // Delete student
+    async function deleteStudent(button) {
+        const row = button.closest('tr');
+        const id = parseInt(row.querySelector('.student-actions').dataset.id);
+        if (confirm("Bạn có chắc muốn xóa sinh viên này?")) {
+            try {
+                const response = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    const errMsg = await response.text();
+                    throw new Error(errMsg);
+                }
+                alert("Xóa sinh viên thành công!");
+                window.location.reload();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Lỗi khi xóa sinh viên: ' + error.message);
+            }
+        }
+    }
+
+    // Close form
+    function closeStudentForm() {
+        document.getElementById("studentModal").classList.add("hidden");
+    }
+
+    // Handle form submission (Add/Edit)
+    document.getElementById("studentForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const saveBtn = document.getElementById("saveBtn");
+        const spinner = document.getElementById("loadingSpinner");
+        const id = document.getElementById("studentId").value;
+
+        const studentData = {
+            code: document.getElementById("studentCode").value,
+            name: document.getElementById("studentName").value,
+            email: document.getElementById("studentEmail").value,
+            phone: document.getElementById("studentPhone").value || null,
+            gender: document.getElementById("studentGender").value,
+            age: parseInt(document.getElementById("studentAge").value) || null,
+            major: document.getElementById("studentMajor").value || null,
+            gpa: parseFloat(document.getElementById("studentGpa").value) || null
+        };
+
+        // Show loading
+        saveBtn.disabled = true;
+        spinner.classList.remove("hidden");
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_BASE}/${id}` : API_BASE;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(studentData)
+            });
+
+            if (!response.ok) {
+                const errMsg = await response.text();
+                throw new Error(errMsg);
+            }
+
+            closeStudentForm();
+            alert(id ? "Cập nhật sinh viên thành công!" : "Thêm sinh viên thành công!");
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Lỗi khi lưu sinh viên: ' + error.message);
+        } finally {
+            saveBtn.disabled = false;
+            spinner.classList.add("hidden");
+        }
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#studentTableBody tr');
+
+        rows.forEach(row => {
+            row.querySelectorAll('td:not(.student-actions)').forEach(td => {
+                td.innerHTML = td.textContent;
+            });
+
+            const cells = Array.from(row.cells).slice(0, 9);
+            const matches = cells.some(cell =>
+                cell.textContent.toLowerCase().includes(searchTerm)
+            );
+
+            if (matches) {
+                row.style.display = '';
+                if (searchTerm) {
+                    cells.forEach(cell => {
+                        const text = cell.textContent;
+                        const regex = new RegExp(`(${searchTerm})`, 'gi');
+                        cell.innerHTML = text.replace(regex, `<span class="highlight">$1</span>`);
+                    });
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    function clearSearch() {
+        searchInput.value = '';
+        const event = new Event('input');
+        searchInput.dispatchEvent(event);
+    }
+
+    // Toggle sidebar
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('active');
+    }
+</script>
+
+</body>
+</html>

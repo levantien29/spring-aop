@@ -22,22 +22,33 @@ public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request){
+    @PostMapping("/register/user")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
             userService.registerUser(request.getEmail(), request.getPassword());
-            return ResponseEntity.ok(Map.of("message", "Đăng ký thành công"));
-        } catch (RuntimeException e){
+            return ResponseEntity.ok(Map.of("message", "Đăng ký user " + request.getEmail() + "thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // dắng kí teacher
+    @PostMapping("/register/teacher")
+    public ResponseEntity<?> registerTeacher(@RequestBody RegisterRequest request) {
+        try {
+            userService.registerTeacher(request.getEmail(), request.getPassword());
+            return ResponseEntity
+                    .ok(Map.of("message", "Đăng ký giáo viên với email : " + request.getEmail() + " thành công"));
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request){
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             // Lấy danh sách role
@@ -47,20 +58,21 @@ public class AuthController {
 
             // Map role sang quyền API
             Map<String, Boolean> permissions = Map.of(
-                    "GET", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER"),
-                    "POST", roles.contains("ROLE_ADMIN"),
-                    "PUT", roles.contains("ROLE_ADMIN"),
-                    "DELETE", roles.contains("ROLE_ADMIN")
-            );
+                    "GET",
+                    roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER") || roles.contains("ROLE_TEACHER"),
+                    "SEARCH",
+                    roles.contains("ROLE_ADMIN") || roles.contains("ROLE_USER") || roles.contains("ROLE_TEACHER"),
+                    "POST", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_TEACHER"),
+                    "PUT", roles.contains("ROLE_ADMIN") || roles.contains("ROLE_TEACHER"),
+                    "DELETE", roles.contains("ROLE_ADMIN"));
 
             return ResponseEntity.ok(Map.of(
                     "message", "Login thành công",
                     "username", request.getEmail(),
                     "roles", roles,
-                    "permissions", permissions
-            ));
+                    "permissions", permissions));
 
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Email hoặc mật khẩu sai"));
         }
@@ -73,8 +85,7 @@ public class AuthController {
 
         return ResponseEntity.ok(Map.of(
                 "message", "Logout successful",
-                "timestamp", LocalDateTime.now()
-        ));
+                "timestamp", LocalDateTime.now()));
     }
 }
 

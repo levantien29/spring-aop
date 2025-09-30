@@ -23,19 +23,68 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/api/auth/**").permitAll()
-        .requestMatchers(HttpMethod.POST, "/api/student/search").hasAnyRole("USER","ADMIN")
 
-        .requestMatchers(HttpMethod.GET, "/api/student/**").hasAnyRole("USER", "ADMIN")
-        .requestMatchers(HttpMethod.POST, "/api/student/**").hasRole("ADMIN")
-        .requestMatchers(HttpMethod.PUT, "/api/student/**").hasRole("ADMIN")
-        .requestMatchers(HttpMethod.DELETE, "/api/student/**").hasRole("ADMIN")
-        .anyRequest().authenticated())
-        .httpBasic();
+            .csrf(csrf -> csrf.disable())
+
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/home", "/login", "/register").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+
+                .requestMatchers(HttpMethod.POST, "/api/student/search").hasAnyRole("USER", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/student/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/student/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/student/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/student/**").hasAnyRole("ADMIN", "TEACHER")
+
+                .requestMatchers(HttpMethod.POST, "/api/teacher/search").hasAnyRole("USER", "ADMIN", "TEACHER")
+                .requestMatchers(HttpMethod.GET, "/api/teacher/**").hasAnyRole("USER", "ADMIN", "TEACHER")
+                .requestMatchers(HttpMethod.POST, "/api/teacher/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/teacher/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/teacher/**").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/api/subject/search").hasAnyRole("USER", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/subject/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/subject/**").hasAnyRole("ADMIN", "TEACHER")
+                .requestMatchers(HttpMethod.PUT, "/api/subject/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/subject/**").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/api/grade/search").hasAnyRole("USER", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/grade/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/grade/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/grade/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/grade/**").hasAnyRole("ADMIN", "TEACHER")
+                
+                .anyRequest().authenticated()
+            )
+            
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/perform-login")
+                .defaultSuccessUrl("/dashboard", true)
+                .failureUrl("/login?error=true")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .permitAll()
+            )
+            
+            .httpBasic(basic -> basic
+                .realmName("Student Management API")
+            )
+            
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
+            
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/access-denied")
+            );
 
         return http.build();
     }
@@ -46,8 +95,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) 
             throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+        return config.getAuthenticationManager();
     }
 }
