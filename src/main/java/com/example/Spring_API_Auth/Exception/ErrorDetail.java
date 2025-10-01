@@ -15,4 +15,5 @@ public class ErrorDetail {
     private String field;
     private List<String> messages;
     private String code;
+    private boolean status;
 }
