@@ -17,6 +17,7 @@ public class SubjectConverter {
 
         if (subject.getTeacher() != null) {
             dto.setTeacherName(subject.getTeacher().getName());
+            dto.setTeacherId(subject.getTeacher().getId());
         }
         return dto;
     }

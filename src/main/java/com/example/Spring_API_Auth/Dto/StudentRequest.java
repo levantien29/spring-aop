@@ -1,6 +1,7 @@
 package com.example.Spring_API_Auth.Dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,5 +42,6 @@ public class StudentRequest {
 
     @NotNull(message = "GPA không được để trống")
     @Min(value = 0, message = "GPA không được nhỏ hơn 0")
+    @Max(value = 4, message = "GPA không được lớn hơn 4.0")
     private Double gpa;
 }

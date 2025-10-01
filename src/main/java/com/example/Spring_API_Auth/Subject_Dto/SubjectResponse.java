@@ -20,7 +20,7 @@ public class SubjectResponse {
 
     // Tên giáo viên dạy môn
     private String teacherName;
-
+    private Long teacherId;
     // Danh sách điểm của sinh viên trong môn học
     // private List<GradeResponse> grades;
 }
