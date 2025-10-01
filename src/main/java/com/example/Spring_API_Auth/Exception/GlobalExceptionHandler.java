@@ -35,7 +35,7 @@
 //         List<ErrorDetail> details = fieldErrors.entrySet().stream()
 //                 .map(entry -> ErrorDetail.builder()
 //                         .field(entry.getKey())
-//                         .messages(entry.getValue())
+//                         .message(entry.getValue())
 //                         .code(ErrorCode.VALIDATION_ERROR.name())
 //                         .build())
 //                 .collect(Collectors.toList());
@@ -67,7 +67,7 @@
 //         List<ErrorDetail> details = fieldErrors.entrySet().stream()
 //                 .map(entry -> ErrorDetail.builder()
 //                         .field(entry.getKey())
-//                         .messages(entry.getValue())
+//                         .message(entry.getValue())
 //                         .code(ErrorCode.CONSTRAINT_VIOLATION.name())
 //                         .build())
 //                 .collect(Collectors.toList());
@@ -90,7 +90,7 @@
 
 //         ErrorDetail detail = ErrorDetail.builder()
 //                 .field(ex.getField())
-//                 .messages(List.of(ex.getMessage()))
+//                 .message(List.of(ex.getMessage()))
 //                 .code(ErrorCode.BAD_REQUEST.name())
 //                 .build();
 
@@ -112,7 +112,7 @@
 
 //         ErrorDetail detail = ErrorDetail.builder()
 //                 .field(ex.getField())
-//                 .messages(List.of(ex.getMessage()))
+//                 .message(List.of(ex.getMessage()))
 //                 .code(ErrorCode.RESOURCE_NOT_FOUND.name())
 //                 .build();
 
@@ -134,7 +134,7 @@
 
 //         ErrorDetail detail = ErrorDetail.builder()
 //                 .field(null)
-//                 .messages(List.of("Internal server error"))
+//                 .message(List.of("Internal server error"))
 //                 .code(ErrorCode.INTERNAL_ERROR.name())
 //                 .build();
 
@@ -152,6 +152,7 @@
 package com.example.Spring_API_Auth.Exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -170,50 +171,43 @@ public class GlobalExceptionHandler {
 
     // 400 - Validation (RequestBody)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<List<ErrorDetail>> handleValidation(MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
-        log.error("Validation error at [{}]: {}", request.getRequestURI(), ex.getMessage());
-        Map<String, List<String>> fieldErrors = ex.getBindingResult().getFieldErrors()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        err -> err.getField(),
-                        Collectors.mapping(err -> err.getDefaultMessage(), Collectors.toList())));
+public ResponseEntity<ErrorDetail> handleValidation(MethodArgumentNotValidException ex,
+                                                    HttpServletRequest request) {
+//     log.error("Validation error at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-        List<ErrorDetail> details = fieldErrors.entrySet().stream()
-                .map(entry -> ErrorDetail.builder()
-                        .field(entry.getKey())
-                        .messages(entry.getValue())
-                        .code(ErrorCode.BAD_REQUEST.name())
-                        .status(false)
-                        .build())
-                .collect(Collectors.toList());
+    // lấy lỗi đầu tiên trong danh sách
+    var firstError = ex.getBindingResult().getFieldErrors().get(0);
 
-        return ResponseEntity.badRequest().body(details);
-    }
+    ErrorDetail detail = ErrorDetail.builder()
+            .field(firstError.getField())
+            .message(firstError.getDefaultMessage())
+            .code(ErrorCode.BAD_REQUEST.name())
+            .status(false)
+            .build();
 
-    // 400 - Validation (RequestParam, PathVariable)
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<List<ErrorDetail>> handleConstraintViolation(ConstraintViolationException ex,
-            HttpServletRequest request) {
-        log.error("Constraint violation at [{}]: {}", request.getRequestURI(), ex.getMessage());
+    return ResponseEntity.badRequest().body(detail);
+}
 
-        Map<String, List<String>> fieldErrors = ex.getConstraintViolations()
-                .stream()
-                .collect(Collectors.groupingBy(
-                        v -> v.getPropertyPath().toString(),
-                        Collectors.mapping(v -> v.getMessage(), Collectors.toList())));
 
-        List<ErrorDetail> details = fieldErrors.entrySet().stream()
-                .map(entry -> ErrorDetail.builder()
-                        .field(entry.getKey())
-                        .messages(entry.getValue())
-                        .code(ErrorCode.BAD_REQUEST.name())
-                        .status(false)
-                        .build())
-                .collect(Collectors.toList());
+   // 400 - Validation (RequestParam, PathVariable)
+@ExceptionHandler(ConstraintViolationException.class)
+public ResponseEntity<ErrorDetail> handleConstraintViolation(ConstraintViolationException ex,
+                                                             HttpServletRequest request) {
+    log.error("Constraint violation at [{}]: {}", request.getRequestURI(), ex.getMessage());
 
-        return ResponseEntity.badRequest().body(details);
-    }
+    // lấy lỗi đầu tiên
+    ConstraintViolation<?> firstError = ex.getConstraintViolations().iterator().next();
+
+    ErrorDetail detail = ErrorDetail.builder()
+            .field(firstError.getPropertyPath().toString()) // tên field bị lỗi
+            .message(firstError.getMessage())   // message lỗi
+            .code(ErrorCode.BAD_REQUEST.name())
+            .status(false)
+            .build();
+
+    return ResponseEntity.badRequest().body(detail);
+}
+
 
     // 400 - Custom BadRequest
     @ExceptionHandler(BadRequestException.class)
@@ -222,7 +216,7 @@ public class GlobalExceptionHandler {
 
         ErrorDetail detail = ErrorDetail.builder()
                 .field(ex.getField())
-                .messages(List.of(ex.getMessage()))
+                .message(ex.getMessage())
                 .code(ErrorCode.BAD_REQUEST.name())
                 .status(false)
                 .build();
@@ -238,7 +232,7 @@ public class GlobalExceptionHandler {
 
         ErrorDetail detail = ErrorDetail.builder()
                 .field(ex.getField())
-                .messages(List.of(ex.getMessage()))
+                .message(ex.getMessage())
                 .code(ErrorCode.RESOURCE_NOT_FOUND.name())
                 .status(false)
                 .build();
@@ -253,7 +247,7 @@ public class GlobalExceptionHandler {
 
         ErrorDetail detail = ErrorDetail.builder()
                 .field(null)
-                .messages(List.of("Internal server error"))
+                .message("Internal server error")
                 .code(ErrorCode.INTERNAL_ERROR.name())
                 .status(false)
                 .build();
