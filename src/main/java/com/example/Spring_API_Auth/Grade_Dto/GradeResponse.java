@@ -14,4 +14,6 @@ public class GradeResponse {
     private Double score;
     private String studentName;
     private String subjectName;
+    private Long subjectId;
+    private Long studentId;
 }

@@ -15,9 +15,11 @@ public class GradeConverter {
 
         if (grade.getStudent() != null) {
             dto.setStudentName(grade.getStudent().getName());
+            dto.setStudentId(grade.getStudent().getId());
         }
         if (grade.getSubject() != null) {
-            dto.setSubjectName(grade.getSubject().getSubjectName()); 
+            dto.setSubjectName(grade.getSubject().getSubjectName());
+            dto.setSubjectId(grade.getSubject().getId());
         }
         return dto;
     }
